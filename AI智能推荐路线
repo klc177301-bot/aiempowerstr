@@ -1,0 +1,143 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能旅游路线推荐</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        h1 { text-align: center; color: #333; }
+        .selector { margin-bottom: 20px; }
+        select, button { padding: 10px; font-size: 16px; margin-right: 10px; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        #result { margin-top: 20px; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: none; }
+        #loading { margin-top: 20px; text-align: center; font-style: italic; color: #666; display: none; }
+        .route-title { font-size: 24px; color: #007BFF; }
+        .detail { margin-bottom: 10px; }
+        .weather { font-weight: bold; color: #FF5722; }
+    </style>
+</head>
+<body>
+    <h1>AI智能旅游路线推荐</h1>
+    <p>请选择您的旅游地点和当下心情，AI将为您生成个性化路线推荐！</p>
+    
+    <div class="selector">
+        <label for="location">选择地点：</label>
+        <select id="location">
+            <option value="xiangshan">北京香山</option>
+            <option value="huangshan">安徽黄山</option>
+        </select>
+    </div>
+    
+    <div class="selector">
+        <label for="mood">选择心情：</label>
+        <select id="mood">
+            <option value="quiet">安静治愈</option>
+            <option value="energetic">活力满满</option>
+            <option value="nostalgic">怀旧感怀</option> <!-- 只在北京香山可用 -->
+            <option value="photo">拍照出片</option>
+            <option value="relaxed">轻松休闲</option>
+            <option value="explore">探索好奇</option>
+        </select>
+    </div>
+    
+    <button onclick="generateRecommendation()">AI生成推荐</button>
+    
+    <div id="loading">AI正在智能分析您的心情并生成路线... 请稍候</div>
+    <div id="result"></div>
+
+    <script>
+        const routes = {
+            xiangshan: {
+                quiet: {
+                    title: "清幽古刹休闲线",
+                    detail: "东门→静翠湖→见心斋→昭庙→碧云寺 从东门入园先赏静翠湖山水风光，再到江南园林风的见心斋看锦鲤戏水，随后逛汉藏风格的昭庙，最后去碧云寺看百年银杏与古建，全程人少景静，游览时长约3小时",
+                    weather: "晴：建议穿轻便布鞋，午后逛碧云寺光线适合拍银杏与古建；阴：昭庙、碧云寺走廊多，可避雨，备好薄外套防凉；大风：避开昭庙高处平台"
+                },
+                energetic: {
+                    title: "全景登顶线",
+                    detail: "东门→勤政殿→知松园→玉华岫→香炉峰→香山寺→双清别墅 从东门进先看勤政殿的元宝枫，再穿行知松园的古松林，到玉华岫赏漫山景致后登顶香炉峰，下山时途经香山寺和双清别墅，覆盖核心景点，全程约4小时",
+                    weather: "晴：做好防晒，登顶前带足饮用水；雨：山路湿滑，香炉峰路段慎行；雾：登顶后视野差，可侧重山脚双清别墅、香山寺游览"
+                },
+                nostalgic: {
+                    title: "红色文化怀旧线",
+                    detail: "东门→勤政殿→双清别墅→来青轩→香山寺 从勤政殿出发，探访曾是中共中央驻地的双清别墅，再到朱德等同志曾居住的来青轩，最后逛盛唐始建的香山寺，感受历史底蕴，游览时长约2.5小时",
+                    weather: "晴：适合在双清别墅庭院停留参观；小雨：室内场馆及走廊多，不影响行程，带便携雨伞即可"
+                },
+                photo: {
+                    title: "高颜值打卡线",
+                    detail: "东门→致远斋→知松园→香山寺（青霞寄逸楼）→香炉峰 先拍致远斋的古典庭院，再拍知松园苍劲古松，接着到香山寺青霞寄逸楼拍远山景致，最后登顶香炉峰拍全景，游览时长约3.5小时",
+                    weather: "晴：上午10点左右光线柔和，拍古建无强逆光；多云：适合拍全景，无需担心强光刺眼"
+                },
+                relaxed: {
+                    title: "平缓漫步线",
+                    detail: "东门→南北主干道→香山历史文化展→知松园 沿主干道穿行山花观赏区，参观香山历史文化展，最后在知松园小憩，全程无爬坡，多平路，游览时长约1.5小时",
+                    weather: "各类天气均适配，大风天气可在文化展室内停留，避免户外长时间逗留"
+                },
+                explore: {
+                    title: "小众探秘线",
+                    detail: "东门→勤政殿→森玉笏→古御道→香山寺后院 从勤政殿左转走森玉笏看奇石景观，沿古御道感受旧时登山路，最后去香山寺后院探访少有人至的亭台，挖掘隐藏景致，游览时长约2小时",
+                    weather: "雨：古御道路面易滑，建议改走旁边平缓辅路；晴：带遮阳帽，路段树荫较少"
+                }
+            },
+            huangshan: {
+                quiet: {
+                    title: "迎客松轻闲线",
+                    detail: "南大门→玉屏索道上行→蒲团松→海豚石→玉屏楼（打卡迎客松）→玉莲新道→远眺天都峰→玉屏索道下行 全程依赖索道，仅需短距离步行，主打近距离观赏迎客松等核心景观，人相对全景线更少，游览时长约3小时",
+                    weather: "晴：在玉莲新道远眺天都峰视野佳；多云：山间易起轻雾，拍迎客松更有朦胧美；雨：索道正常运营，备好雨衣，步道有护栏需慢行"
+                },
+                energetic: {
+                    title: "全景环线",
+                    detail: "南大门→云谷索道上行→始信峰→黑虎松→排云亭→西海大峡谷（观光缆车）→光明顶→鳌鱼峰→迎客松→玉屏索道下行 覆盖黄山奇松、怪石、云海等精华景观，索道+观光缆车辅助，行程充实且高效，全程约7 - 8小时",
+                    weather: "晴：光明顶适合午后观云海，做好防晒；大风：西海大峡谷观光缆车可能停运，提前查看通知；雾：始信峰观景视野受限，可放缓脚步赏近景奇松"
+                },
+                nostalgic: null, // 黄山无此心情，脚本中会处理
+                photo: {
+                    title: "地标打卡线",
+                    detail: "南大门→云谷索道上行→梦笔生花→飞来石→光明顶→迎客松→玉屏索道下行 串联梦笔生花、飞来石等网红怪石景点，光明顶可拍全景，迎客松是标志性打卡点，游览时长约6小时",
+                    weather: "晴：清晨在清凉台拍狮子峰远景光线佳；阴：飞来石周边无遮挡，注意防风；雨：减少在悬崖边停留，优先拍亭台与松石搭配的景致"
+                },
+                relaxed: {
+                    title: "北海轻松线",
+                    detail: "南大门→云谷索道上行→始信峰景观区→狮子峰（清凉台）→北海中路→云谷索道下行 聚焦北海核心区域，路线平缓，赏始信峰奇松、清凉台远景，无需长距离爬坡，游览时长约4小时",
+                    weather: "各类天气均适配，建议带少量零食补充体力，山上餐饮价格较高"
+                },
+                explore: {
+                    title: "小众探秘线",
+                    detail: "北大门→太平索道上行→排云亭→西海大峡谷一环→西海大峡谷二环→网红小火车上行→天海景观区 深入西海大峡谷，看峡谷独特地貌，乘坐网红小火车体验特色交通，小众景奇，游览时长约5小时",
+                    weather: "晴：峡谷内光线充足，适合拍地貌细节；雨：峡谷内可能有积水，听从工作人员指引；雪：冬季部分路段封闭，需提前确认开放情况"
+                }
+            }
+        };
+
+        function generateRecommendation() {
+            const location = document.getElementById('location').value;
+            const mood = document.getElementById('mood').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+
+            resultDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+
+            setTimeout(() => { // 模拟AI生成延迟
+                loadingDiv.style.display = 'none';
+                const route = routes[location][mood];
+                if (route) {
+                    resultDiv.innerHTML = `
+                        <p class="route-title">AI推荐路线：${route.title}</p>
+                        <p class="detail"><strong>路线详情：</strong> ${route.detail}</p>
+                        <p class="weather"><strong>天气适配提醒：</strong> ${route.weather}</p>
+                    `;
+                    resultDiv.style.display = 'block';
+                } else {
+                    resultDiv.innerHTML = '<p>抱歉，此心情在选定地点暂无匹配路线。请尝试其他心情！</p>';
+                    resultDiv.style.display = 'block';
+                }
+            }, 1500); // 1.5秒延迟，伪装AI计算
+        }
+    </script>
+</body>
+</html>
+```
