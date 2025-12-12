@@ -43,6 +43,7 @@
 <script>
 particlesJS("particles",{particles:{number:{value:100},color:{value:"#ffffff"},opacity:{value:0.4},size:{value:3},move:{enable:true,speed:1}},interactivity:{events:{onhover:{enable:true,mode:"bubble"}}},retina_detect:true});
 
+// 你的和风天气 Key（已确认可用）
 const key = "Q14EE8E598F";
 
 function updateWeather(){
@@ -53,12 +54,29 @@ function updateWeather(){
             if(d.code === "200"){
                 const w = d.now;
                 document.getElementById("xs-temp").innerHTML = w.temp + "°C";
-                document.getElementById("xs-info").innerHTML = `${w.text} • 湿度 ${w.humidity}% • ${w.windDir} ${w.windScale}级`;
+                document.getElementById("xs-info").innerHTML = w.text + " • 湿度 " + w.humidity + "% • " + w.windDir + " " + w.windScale + "级";
+                // 3天预报
+                fetch(`https://devapi.qweather.com/v7/weather/3d?location=101010100&key=${key}`)
+                    .then(r => r.json())
+                    .then(f => {
+                        if(f.code === "200"){
+                            let html = "";
+                            f.daily.forEach((day, i) => {
+                                if(i >= 3) return;
+                                const week = ["日","一","二","三","四","五","六"][new Date(day.fxDate).getDay()];
+                                html += `<div class="day"><span>${day.fxDate.slice(5)} 周${week}</span><span>${day.textDay} ${day.tempMax}/${day.tempMin}°C</span></div>`;
+                            });
+                            document.getElementById("xs-forecast").innerHTML = html;
+                        }
+                    });
             } else {
-                document.getElementById("xs-info").innerHTML = "获取失败：" + (d.code || "未知");
+                document.getElementById("xs-info").innerHTML = "获取失败：" + d.code;
             }
         })
-        .catch(() => document.getElementById("xs-info").innerHTML = "网络错误");
+        .catch(e => {
+            document.getElementById("xs-info").innerHTML = "网络错误";
+            console.error(e);
+        });
 
     // 黄山
     fetch(`https://devapi.qweather.com/v7/weather/now?location=101250101&key=${key}`)
@@ -67,12 +85,28 @@ function updateWeather(){
             if(d.code === "200"){
                 const w = d.now;
                 document.getElementById("hs-temp").innerHTML = w.temp + "°C";
-                document.getElementById("hs-info").innerHTML = `${w.text} • 湿度 ${w.humidity}% • ${w.windDir} ${w.windScale}级`;
+                document.getElementById("hs-info").innerHTML = w.text + " • 湿度 " + w.humidity + "% • " + w.windDir + " " + w.windScale + "级";
+                fetch(`https://devapi.qweather.com/v7/weather/3d?location=101250101&key=${key}`)
+                    .then(r => r.json())
+                    .then(f => {
+                        if(f.code === "200"){
+                            let html = "";
+                            f.daily.forEach((day, i) => {
+                                if(i >= 3) return;
+                                const week = ["日","一","二","三","四","五","六"][new Date(day.fxDate).getDay()];
+                                html += `<div class="day"><span>${day.fxDate.slice(5)} 周${week}</span><span>${day.textDay} ${day.tempMax}/${day.tempMin}°C</span></div>`;
+                            });
+                            document.getElementById("hs-forecast").innerHTML = html;
+                        }
+                    });
             } else {
-                document.getElementById("hs-info").innerHTML = "获取失败：" + (d.code || "未知");
+                document.getElementById("hs-info").innerHTML = "获取失败：" + d.code;
             }
         })
-        .catch(() => document.getElementById("hs-info").innerHTML = "网络错误");
+        .catch(e => {
+            document.getElementById("hs-info").innerHTML = "网络错误";
+            console.error(e);
+        });
 }
 
 updateWeather();
