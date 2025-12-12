@@ -30,13 +30,16 @@
         .map-btn{margin-top:20px;background:#007bff;color:white;padding:14px 28px;border:none;border-radius:12px;cursor:pointer;font-size:19px;}
         .map-btn:hover{background:#0056b3;}
         #mapModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;display:none;justify-content:center;align-items:center;}
-        #mapContainer{width:95%;height:90%;background:white;border-radius:12px;overflow:hidden;}
+        #mapContainer{width:95%;height:90%;background:white;border-radius:12px;overflow:hidden;position:relative;}
         #closeMap{position:absolute;top:20px;right:30px;background:none;border:none;font-size:40px;color:white;cursor:pointer;z-index:1001;}
+        #mapStyleBtn{position:absolute;top:20px;left:20px;background:#fff;padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-size:14px;z-index:1001;}
+        #weather-section{margin-top:20px;background:rgba(255,255,255,0.9);padding:20px;border-radius:12px;box-shadow:0 10px 20px rgba(0,0,0,0,0.2);text-align:left;}
+        #current-time{font-size:18px;color:#1e40af;margin-bottom:10px;text-align:center;}
+        #weather-current{font-size:24px;color:#007bff;margin-bottom:10px;}
+        #weather-forecast{font-size:16px;color:#666;}
         #globalMusic{position:fixed;bottom:30px;right:30px;background:#ff6b6b;color:white;width:65px;height:65px;border-radius:50%;font-size:35px;border:none;box-shadow:0 10px 30px rgba(255,107,107,0.5);cursor:pointer;z-index:999;animation:p 2s infinite;}
         @keyframes p{0%{box-shadow:0 0 0 0 rgba(255,107,107,0.7)}70%{box-shadow:0 0 0 20px rgba(255,107,107,0)}100%{box-shadow:0 0 0 0 rgba(255,107,107,0)}}
-        .bisu-badge{position:fixed;bottom:100px;right:30px;background:#1e40af;color:white;padding:10px 20px;border-radius:50px;font-size:16px;box-shadow:0 5px 15px rgba(0,0,0,0.3);z-index:998;}
-        #weather-section{margin-top:20px;background:rgba(255,255,255,0.9);padding:20px;border-radius:12px;box-shadow:0 10px 20px rgba(0,0,0,0.2);}
-        #current-time{text-align:center;font-size:18px;color:#1e40af;margin-bottom:10px;}
+        .bisu-badge{position:fixed;bottom:100px;right:30px;background:#1e40af;color:white;padding:10px 20px;border-radius:50px;font-size:16px;box-shadow:0 5px 15px rgba(0,0,0,0.3);z-index:998;cursor:pointer;}
     </style>
 </head>
 <body>
@@ -49,7 +52,7 @@
     <source src="踏山越水.mp3" type="audio/mpeg">
 </audio>
 
-<div class="bisu-badge">BISU zyp</div>
+<div class="bisu-badge" onclick="alert('BISU zyp - 你的专属旅游AI助手！')">BISU zyp</div>
 
 <div class="container">
     <div class="dolls">
@@ -95,23 +98,29 @@
             <img id="routeImg" class="bigimg" src="" alt="线路实拍">
             <p style="font-size:20px;line-height:2;" id="detail"></p>
             <p style="color:#dc2626;font-weight:bold;font-size:19px;" id="weather"></p>
+
             <div id="weather-section">
                 <h3>实时天气与时间</h3>
-                <p id="current-time"></p>  <!-- 替换成da2dd2 for 北京, 9e04e1 for 黄山 -->
+                <p id="current-time"></p>
+                <p id="weather-current"></p>
+                <div id="weather-forecast"></div>
             </div>
+
             <button id="showMap" class="map-btn" onclick="showMap()">查看路线地图</button>
         </div>
     </div>
 </div>
 
 <!-- 地图弹窗 -->
-<div id="mapModal" style="display:none;">
+<div id="mapModal">
     <button id="closeMap" onclick="closeMap()">&times;</button>
+    <button id="mapStyleBtn" onclick="toggleMapStyle()">切换卫星模式</button>
     <div id="mapContainer"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=a88b86b2a557c0ea14379177216583b3"></script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=a88b86b2a557c0ea14379177216583b3&plugin=AMap.Marker,AMap.Polyline,AMap.ToolBar,AMap.MapType"></script>
+
 <script>
 particlesJS("particles",{particles:{number:{value:80},color:{value:"#ffffff"},opacity:{value:0.5},size:{value:3},move:{enable:true,speed:1.5}},interactivity:{events:{onhover:{enable:true,mode:"bubble"},onclick:{enable:true,mode:"repulse"}}},retina_detect:true});
 
@@ -147,18 +156,18 @@ const imgMap = {
 
 const data = {
     xiangshan: {
-        quiet: {t:"清幽古刹休闲线", d:"东门→静翠湖→见心斋→昭庙→碧云寺 从东门入园先赏静翠湖山水风光，再到江南园林风的见心斋看锦鲤戏水，随后逛汉藏风格的昭庙，最后去碧云寺看百年银杏与古建，全程人少景静，游览时长约3小时", w:"晴：建议穿轻便布鞋，午后逛碧云寺光线适合拍银杏与古建；阴：昭庙、碧云寺走廊多，可避雨，备好薄外套防凉；大风：避开昭庙高处平台"},
-        energy: {t:"全景登顶线", d:"东门→勤政殿→知松园→玉华岫→香炉峰→香山寺→双清别墅 从东门进先看勤政殿的元宝枫，再穿行知松园的古松林，到玉华岫赏漫山景致后登顶香炉峰，下山时途经香山寺和双清别墅，覆盖核心景点，全程约4小时", w:"晴：做好防晒，登顶前带足饮用水；雨：山路湿滑，香炉峰路段慎行；雾：登顶后视野差，可侧重山脚双清别墅、香山寺游览"},
-        old: {t:"红色文化怀旧线", d:"东门→勤政殿→双清别墅→来青轩→香山寺 从勤政殿出发，探访曾是中共中央驻地的双清别墅，再到朱德等同志曾居住的来青轩，最后逛盛唐始建的香山寺，感受历史底蕴，游览时长约2.5小时", w:"晴：适合在双清别墅庭院停留参观；小雨：室内场馆及走廊多，不影响行程，带便携雨伞即可"},
-        photo: {t:"高颜值打卡线", d:"东门→致远斋→知松园→香山寺（青霞寄逸楼）→香炉峰 先拍致远斋的古典庭院，再拍知松园苍劲古松，接着到香山寺青霞寄逸楼拍远山景致，最后登顶香炉峰拍全景，游览时长约3.5小时", w:"晴：上午10点左右光线柔和，拍古建无强逆光；多云：适合拍全景，无需担心强光刺眼"},
-        easy: {t:"平缓漫步线", d:"东门→南北主干道→香山历史文化展→知松园 沿主干道穿行山花观赏区，参观香山历史文化展，最后在知松园小憩，全程无爬坡，多平路，游览时长约1.5小时", w:"各类天气均适配，大风天气可在文化展室内停留，避免户外长时间逗留"},
+        quiet:   {t:"清幽古刹休闲线", d:"东门→静翠湖→见心斋→昭庙→碧云寺 从东门入园先赏静翠湖山水风光，再到江南园林风的见心斋看锦鲤戏水，随后逛汉藏风格的昭庙，最后去碧云寺看百年银杏与古建，全程人少景静，游览时长约3小时", w:"晴：建议穿轻便布鞋，午后逛碧云寺光线适合拍银杏与古建；阴：昭庙、碧云寺走廊多，可避雨，备好薄外套防凉；大风：避开昭庙高处平台"},
+        energy:  {t:"全景登顶线", d:"东门→勤政殿→知松园→玉华岫→香炉峰→香山寺→双清别墅 从东门进先看勤政殿的元宝枫，再穿行知松园的古松林，到玉华岫赏漫山景致后登顶香炉峰，下山时途经香山寺和双清别墅，覆盖核心景点，全程约4小时", w:"晴：做好防晒，登顶前带足饮用水；雨：山路湿滑，香炉峰路段慎行；雾：登顶后视野差，可侧重山脚双清别墅、香山寺游览"},
+        old:     {t:"红色文化怀旧线", d:"东门→勤政殿→双清别墅→来青轩→香山寺 从勤政殿出发，探访曾是中共中央驻地的双清别墅，再到朱德等同志曾居住的来青轩，最后逛盛唐始建的香山寺，感受历史底蕴，游览时长约2.5小时", w:"晴：适合在双清别墅庭院停留参观；小雨：室内场馆及走廊多，不影响行程，带便携雨伞即可"},
+        photo:   {t:"高颜值打卡线", d:"东门→致远斋→知松园→香山寺（青霞寄逸楼）→香炉峰 先拍致远斋的古典庭院，再拍知松园苍劲古松，接着到香山寺青霞寄逸楼拍远山景致，最后登顶香炉峰拍全景，游览时长约3.5小时", w:"晴：上午10点左右光线柔和，拍古建无强逆光；多云：适合拍全景，无需担心强光刺眼"},
+        easy:    {t:"平缓漫步线", d:"东门→南北主干道→香山历史文化展→知松园 沿主干道穿行山花观赏区，参观香山历史文化展，最后在知松园小憩，全程无爬坡，多平路，游览时长约1.5小时", w:"各类天气均适配，大风天气可在文化展室内停留，避免户外长时间逗留"},
         explore: {t:"小众探秘线", d:"东门→勤政殿→森玉笏→古御道→香山寺后院 从勤政殿左转走森玉笏看奇石景观，沿古御道感受旧时登山路，最后去香山寺后院探访少有人至的亭台，挖掘隐藏景致，游览时长约2小时", w:"雨：古御道路面易滑，建议改走旁边平缓辅路；晴：带遮阳帽，路段树荫较少"}
     },
     huangshan: {
-        quiet: {t:"迎客松轻闲线", d:"南大门→玉屏索道上行→蒲团松→海豚石→玉屏楼（打卡迎客松）→玉莲新道→远眺天都峰→玉屏索道下行 全程依赖索道，仅需短距离步行，主打近距离观赏迎客松等核心景观，人相对全景线更少，游览时长约3小时", w:"晴：在玉莲新道远眺天都峰视野佳；多云：山间易起轻雾，拍迎客松更有朦胧美；雨：索道正常运营，备好雨衣，步道有护栏需慢行"},
-        energy: {t:"全景环线", d:"南大门→云谷索道上行→始信峰→黑虎松→排云亭→西海大峡谷（观光缆车）→光明顶→鳌鱼峰→迎客松→玉屏索道下行 覆盖黄山奇松、怪石、云海等精华景观，索道+观光缆车辅助，行程充实且高效，全程约7-8小时", w:"晴：光明顶适合午后观云海，做好防晒；大风：西海大峡谷观光缆车可能停运，提前查看通知；雾：始信峰观景视野受限，可放缓脚步赏近景奇松"},
-        photo: {t:"地标打卡线", d:"南大门→云谷索道上行→梦笔生花→飞来石→光明顶→迎客松→玉屏索道下行 串联梦笔生花、飞来石等网红怪石景点，光明顶可拍全景，迎客松是标志性打卡点，游览时长约6小时", w:"晴：清晨在清凉台拍狮子峰远景光线佳；阴：飞来石周边无遮挡，注意防风；雨：减少在悬崖边停留，优先拍亭台与松石搭配的景致"},
-        easy: {t:"北海轻松线", d:"南大门→云谷索道上行→始信峰景观区→狮子峰（清凉台）→北海中路→云谷索道下行 聚焦北海核心区域，路线平缓，赏始信峰奇松、清凉台远景，无需长距离爬坡，游览时长约4小时", w:"各类天气适配，建议带少量零食补充体力，山上餐饮价格较高"},
+        quiet:   {t:"迎客松轻闲线", d:"南大门→玉屏索道上行→蒲团松→海豚石→玉屏楼（打卡迎客松）→玉莲新道→远眺天都峰→玉屏索道下行 全程依赖索道，仅需短距离步行，主打近距离观赏迎客松等核心景观，人相对全景线更少，游览时长约3小时", w:"晴：在玉莲新道远眺天都峰视野佳；多云：山间易起轻雾，拍迎客松更有朦胧美；雨：索道正常运营，备好雨衣，步道有护栏需慢行"},
+        energy:  {t:"全景环线", d:"南大门→云谷索道上行→始信峰→黑虎松→排云亭→西海大峡谷（观光缆车）→光明顶→鳌鱼峰→迎客松→玉屏索道下行 覆盖黄山奇松、怪石、云海等精华景观，索道+观光缆车辅助，行程充实且高效，全程约7-8小时", w:"晴：光明顶适合午后观云海，做好防晒；大风：西海大峡谷观光缆车可能停运，提前查看通知；雾：始信峰观景视野受限，可放缓脚步赏近景奇松"},
+        photo:   {t:"地标打卡线", d:"南大门→云谷索道上行→梦笔生花→飞来石→光明顶→迎客松→玉屏索道下行 串联梦笔生花、飞来石等网红怪石景点，光明顶可拍全景，迎客松是标志性打卡点，游览时长约6小时", w:"晴：清晨在清凉台拍狮子峰远景光线佳；阴：飞来石周边无遮挡，注意防风；雨：减少在悬崖边停留，优先拍亭台与松石搭配的景致"},
+        easy:    {t:"北海轻松线", d:"南大门→云谷索道上行→始信峰景观区→狮子峰（清凉台）→北海中路→云谷索道下行 聚焦北海核心区域，路线平缓，赏始信峰奇松、清凉台远景，无需长距离爬坡，游览时长约4小时", w:"各类天气适配，建议带少量零食补充体力，山上餐饮价格较高"},
         explore: {t:"小众探秘线", d:"北大门→太平索道上行→排云亭→西海大峡谷一环→西海大峡谷二环→网红小火车上行→天海景观区 深入西海大峡谷，看峡谷独特地貌，乘坐网红小火车体验特色交通，小众景奇，游览时长约5小时", w:"晴：峡谷内光线充足，适合拍地貌细节；雨：峡谷内可能有积水，听从工作人员指引；雪：冬季部分路段封闭，需提前确认开放情况"}
     }
 };
@@ -166,6 +175,89 @@ const data = {
 let currentLoc = '';
 let currentMood = '';
 let map = null;
+let mapStyle = 'normal'; // normal / satellite
+
+// 路线坐标（高德GCJ-02）
+const routeCoords = {
+    xiangshan_quiet: [
+        {name:"东门", lnglat:[116.1797,39.9910]},
+        {name:"静翠湖", lnglat:[116.1845,39.9932]},
+        {name:"见心斋", lnglat:[116.1840,39.9938]},
+        {name:"昭庙", lnglat:[116.1830,39.9945]},
+        {name:"碧云寺", lnglat:[116.1820,39.9955]}
+    ],
+    xiangshan_energy: [
+        {name:"东门", lnglat:[116.1797,39.9910]},
+        {name:"勤政殿", lnglat:[116.1805,39.9915]},
+        {name:"知松园", lnglat:[116.1812,39.9923]},
+        {name:"玉华岫", lnglat:[116.1820,39.9930]},
+        {name:"香炉峰", lnglat:[116.1800,39.9950]},
+        {name:"香山寺", lnglat:[116.1810,39.9940]},
+        {name:"双清别墅", lnglat:[116.1810,39.9910]}
+    ],
+    xiangshan_old: [
+        {name:"东门", lnglat:[116.1797,39.9910]},
+        {name:"勤政殿", lnglat:[116.1805,39.9915]},
+        {name:"双清别墅", lnglat:[116.1810,39.9910]},
+        {name:"来青轩", lnglat:[116.1815,39.9915]},
+        {name:"香山寺", lnglat:[116.1810,39.9940]}
+    ],
+    xiangshan_photo: [
+        {name:"东门", lnglat:[116.1797,39.9910]},
+        {name:"致远斋", lnglat:[116.1800,39.9920]},
+        {name:"知松园", lnglat:[116.1812,39.9923]},
+        {name:"香山寺", lnglat:[116.1810,39.9940]},
+        {name:"香炉峰", lnglat:[116.1800,39.9950]}
+    ],
+    xiangshan_easy: [
+        {name:"东门", lnglat:[116.1797,39.9910]},
+        {name:"南北主干道", lnglat:[116.1810,39.9920]},
+        {name:"香山历史文化展", lnglat:[116.1815,39.9925]},
+        {name:"知松园", lnglat:[116.1812,39.9923]}
+    ],
+    xiangshan_explore: [
+        {name:"东门", lnglat:[116.1797,39.9910]},
+        {name:"勤政殿", lnglat:[116.1805,39.9915]},
+        {name:"森玉笏", lnglat:[116.1818,39.9930]},
+        {name:"古御道", lnglat:[116.1815,39.9940]},
+        {name:"香山寺后院", lnglat:[116.1810,39.9945]}
+    ],
+    huangshan_quiet: [
+        {name:"南大门", lnglat:[118.155,30.137]},
+        {name:"玉屏索道", lnglat:[118.167,30.084]},
+        {name:"蒲团松", lnglat:[118.166,30.082]},
+        {name:"迎客松", lnglat:[118.166,30.082]}
+    ],
+    huangshan_energy: [
+        {name:"南大门", lnglat:[118.155,30.137]},
+        {name:"云谷索道", lnglat:[118.166,30.133]},
+        {name:"始信峰", lnglat:[118.168,30.133]},
+        {name:"西海大峡谷", lnglat:[118.173,30.126]},
+        {name:"光明顶", lnglat:[118.166,30.128]},
+        {name:"迎客松", lnglat:[118.166,30.082]}
+    ],
+    huangshan_photo: [
+        {name:"南大门", lnglat:[118.155,30.137]},
+        {name:"云谷索道", lnglat:[118.166,30.133]},
+        {name:"梦笔生花", lnglat:[118.167,30.134]},
+        {name:"飞来石", lnglat:[118.166,30.134]},
+        {name:"光明顶", lnglat:[118.166,30.128]},
+        {name:"迎客松", lnglat:[118.166,30.082]}
+    ],
+    huangshan_easy: [
+        {name:"南大门", lnglat:[118.155,30.137]},
+        {name:"云谷索道", lnglat:[118.166,30.133]},
+        {name:"始信峰", lnglat:[118.168,30.133]},
+        {name:"清凉台", lnglat:[118.168,30.135]},
+        {name:"北海中路", lnglat:[118.167,30.134]}
+    ],
+    huangshan_explore: [
+        {name:"北大门", lnglat:[118.168,30.138]},
+        {name:"太平索道", lnglat:[118.168,30.138]},
+        {name:"西海大峡谷", lnglat:[118.173,30.126]},
+        {name:"天海", lnglat:[118.167,30.127]}
+    ]
+};
 
 function generate(){
     currentLoc = document.getElementById("location").value;
@@ -190,156 +282,87 @@ function generate(){
         document.getElementById("weather").innerHTML = "天气提醒：" + r.w;
         document.getElementById("showMap").style.display = "block";
         result.style.display = "block";
-        updateWeather(currentLoc);
         result.scrollIntoView({behavior:"smooth"});
+
+        // 显示实时天气和时间
+        updateWeatherAndTime(currentLoc);
     }, 1500);
 }
 
-// 更新实时天气和时间
-function updateWeather(loc) {
-    const weatherId = loc === "xiangshan" ? "da2dd2" : "9e04e1";  // 从工具结果
-    const weatherSection = document.getElementById("weather-section");
-    weatherSection.innerHTML = ``;  // 渲染天气卡
-
-    // 当前时间
+// 实时天气 + 时间
+function updateWeatherAndTime(loc){
+    // 实时时间
     const now = new Date();
-    document.getElementById("current-time").innerHTML = "当前时间：" + now.toLocaleString('zh-CN', {dateStyle: 'full', timeStyle: 'short'});
+    document.getElementById("current-time").innerHTML = "当前时间：" + now.toLocaleString('zh-CN');
+
+    // 实时天气（高德API）
+    const adcode = loc === "xiangshan" ? "110105" : "341000"; // 香山区/黄山市
+    fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=a88b86b2a557c0ea14379177216583b3&city=${adcode}&extensions=all`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "1" && data.lives && data.lives.length > 0){
+                const live = data.lives[0];
+                document.getElementById("weather-current").innerHTML = 
+                    `当前天气：${live.weather}　${live.temperature}°C　${live.humidity}%　${live.winddirection}风${live.windpower}级`;
+            }
+        })
+        .catch(() => {
+            document.getElementById("weather-current").innerHTML = "天气数据获取失败，使用本地模拟数据";
+        });
 }
 
-// 地图坐标（从工具结果提取）
-const routeCoords = {
-    xiangshan_quiet: [
-        {name: "东门", lnglat: [116.1796917, 39.9909972]},
-        {name: "静翠湖", lnglat: [116.185, 39.993]},
-        {name: "见心斋", lnglat: [116.184, 39.9935]},
-        {name: "昭庙", lnglat: [116.183, 39.994]},
-        {name: "碧云寺", lnglat: [116.182, 39.995]}
-    ],
-    xiangshan_energy: [
-        {name: "东门", lnglat: [116.1796917, 39.9909972]},
-        {name: "勤政殿", lnglat: [116.180, 39.991]},
-        {name: "知松园", lnglat: [116.181, 39.992]},
-        {name: "玉华岫", lnglat: [116.182, 39.993]},
-        {name: "香炉峰", lnglat: [116.180, 39.995]},
-        {name: "香山寺", lnglat: [116.181, 39.994]},
-        {name: "双清别墅", lnglat: [116.181, 39.991]}
-    ],
-    // 其他路线类似，从工具结果补全所有
-    xiangshan_old: [
-        {name: "东门", lnglat: [116.1796917, 39.9909972]},
-        {name: "勤政殿", lnglat: [116.180, 39.991]},
-        {name: "双清别墅", lnglat: [116.181, 39.991]},
-        {name: "来青轩", lnglat: [116.1815, 39.9915]},
-        {name: "香山寺", lnglat: [116.181, 39.994]}
-    ],
-    xiangshan_photo: [
-        {name: "东门", lnglat: [116.1796917, 39.9909972]},
-        {name: "致远斋", lnglat: [116.180, 39.992]},
-        {name: "知松园", lnglat: [116.181, 39.992]},
-        {name: "香山寺（青霞寄逸楼）", lnglat: [116.181, 39.994]},
-        {name: "香炉峰", lnglat: [116.180, 39.995]}
-    ],
-    xiangshan_easy: [
-        {name: "东门", lnglat: [116.1796917, 39.9909972]},
-        {name: "南北主干道", lnglat: [116.181, 39.992]},
-        {name: "香山历史文化展", lnglat: [116.181, 39.992]},
-        {name: "知松园", lnglat: [116.181, 39.992]}
-    ],
-    xiangshan_explore: [
-        {name: "东门", lnglat: [116.1796917, 39.9909972]},
-        {name: "勤政殿", lnglat: [116.180, 39.991]},
-        {name: "森玉笏", lnglat: [116.181, 39.993]},
-        {name: "古御道", lnglat: [116.181, 39.994]},
-        {name: "香山寺后院", lnglat: [116.181, 39.994]}
-    ],
-    huangshan_quiet: [
-        {name: "南大门", lnglat: [118.155, 30.137]},
-        {name: "玉屏索道", lnglat: [118.167, 30.084]},
-        {name: "蒲团松", lnglat: [118.166, 30.082]},
-        {name: "海豚石", lnglat: [118.166, 30.081]},
-        {name: "玉屏楼", lnglat: [118.166, 30.080]},
-        {name: "玉莲新道", lnglat: [118.165, 30.079]},
-        {name: "天都峰", lnglat: [118.163, 30.077]}
-    ],
-    huangshan_energy: [
-        {name: "南大门", lnglat: [118.155, 30.137]},
-        {name: "云谷索道", lnglat: [118.166, 30.133]},
-        {name: "始信峰", lnglat: [118.168, 30.133]},
-        {name: "黑虎松", lnglat: [118.169, 30.132]},
-        {name: "排云亭", lnglat: [118.171, 30.128]},
-        {name: "西海大峡谷", lnglat: [118.173, 30.126]},
-        {name: "光明顶", lnglat: [118.166, 30.128]},
-        {name: "鳌鱼峰", lnglat: [118.167, 30.085]},
-        {name: "迎客松", lnglat: [118.166, 30.082]}
-    ],
-    huangshan_photo: [
-        {name: "南大门", lnglat: [118.155, 30.137]},
-        {name: "云谷索道", lnglat: [118.166, 30.133]},
-        {name: "梦笔生花", lnglat: [118.167, 30.134]},
-        {name: "飞来石", lnglat: [118.166, 30.134]},
-        {name: "光明顶", lnglat: [118.166, 30.128]},
-        {name: "迎客松", lnglat: [118.166, 30.082]}
-    ],
-    huangshan_easy: [
-        {name: "南大门", lnglat: [118.155, 30.137]},
-        {name: "云谷索道", lnglat: [118.166, 30.133]},
-        {name: "始信峰", lnglat: [118.168, 30.133]},
-        {name: "狮子峰", lnglat: [118.168, 30.135]},
-        {name: "清凉台", lnglat: [118.168, 30.135]},
-        {name: "北海中路", lnglat: [118.167, 30.134]}
-    ],
-    huangshan_explore: [
-        {name: "北大门", lnglat: [118.168, 30.138]},
-        {name: "太平索道", lnglat: [118.168, 30.138]},
-        {name: "排云亭", lnglat: [118.171, 30.128]},
-        {name: "西海大峡谷一环", lnglat: [118.173, 30.126]},
-        {name: "西海大峡谷二环", lnglat: [118.174, 30.125]},
-        {name: "天海景观区", lnglat: [118.167, 30.127]}
-    ]
-};
-
+// 显示地图
 function showMap(){
     document.getElementById("mapModal").style.display = "flex";
     const key = currentLoc + "_" + currentMood;
     const coords = routeCoords[key] || [];
-    map = new AMap.Map("mapContainer", {zoom:13, center: coords[0]?.lnglat || [118.155, 30.137]});
-    const markers = [];
+
+    map = new AMap.Map("mapContainer", {
+        zoom: 14,
+        center: coords[0]?.lnglat || [116.18, 39.99],
+        mapStyle: mapStyle
+    });
+
     coords.forEach((point, index) => {
-        const marker = new AMap.Marker({
+        new AMap.Marker({
+            map: map,
             position: point.lnglat,
             title: point.name,
-            label: {content: (index + 1) + '. ' + point.name, offset: new AMap.Pixel(10, 0)}
+            label: {content: (index+1) + ". " + point.name, offset: new AMap.Pixel(10, -10)}
         });
-        markers.push(marker.getPosition());
-        map.add(marker);
     });
-    new AMap.Polyline({
-        path: markers,
-        isOutline: true,
-        outlineColor: '#ffeeff',
-        borderWeight: 3,
-        strokeColor: "#3366FF",
-        strokeOpacity: 1,
-        strokeWeight: 6,
-        strokeStyle: 'solid',
-        lineJoin: 'round',
-        lineCap: 'round'
-    }).setMap(map);
+
+    // 绘制路线
+    if(coords.length > 1){
+        new AMap.Polyline({
+            map: map,
+            path: coords.map(p => p.lnglat),
+            strokeColor: "#3366FF",
+            strokeWeight: 6,
+            strokeOpacity: 0.8
+        });
+    }
+
     map.setFitView();
+}
+
+// 切换卫星/标准模式
+function toggleMapStyle(){
+    if(map){
+        mapStyle = mapStyle === "normal" ? "amap://styles/satellite" : "amap://styles/normal";
+        map.setMapStyle(mapStyle);
+        document.getElementById("mapStyleBtn").innerHTML = mapStyle.includes("satellite") ? "标准模式" : "切换卫星模式";
+    }
 }
 
 function closeMap(){
     document.getElementById("mapModal").style.display = "none";
     if(map) map.destroy();
+    map = null;
 }
 
-// 更新实时时间
-setInterval(() => {
-    const now = new Date();
-    document.getElementById("current-time").innerHTML = "当前时间：" + now.toLocaleString('zh-CN', {dateStyle: 'full', timeStyle: 'short'});
-}, 1000);
-
-// 其他函数保持不变（generate, toggleDollSound 等）
+// 页面加载完自动播放背景音乐
+window.onload = () => document.getElementById("bgm").play().catch(()=>{});
 </script>
 </body>
 </html>
