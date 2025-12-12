@@ -14,6 +14,8 @@
         .location{font-size:28px;color:#1e40af;text-align:center;margin-bottom:15px;font-weight:bold;}
         .current{font-size:48px;color:#d946ef;font-weight:bold;text-align:center;margin:10px 0;}
         .info{font-size:20px;color:#333;line-height:2;text-align:center;}
+        .forecast{margin-top:20px;}
+        .day{display:flex;justify-content:space-between;background:rgba(0,0,0,0.05);padding:12px 16px;margin:8px 0;border-radius:12px;font-size:18px;}
         .back-btn{position:fixed;top:20px;left:20px;background:#fff;color:#1e40af;padding:12px 24px;border-radius:50px;font-size:18px;box-shadow:0 5px 15px rgba(0,0,0,0.3);text-decoration:none;z-index:999;}
     </style>
 </head>
@@ -27,11 +29,13 @@
         <div class="location">北京 · 香山</div>
         <div class="current" id="xs-temp">--</div>
         <div class="info" id="xs-info">正在获取...</div>
+        <div class="forecast" id="xs-forecast"></div>
     </div>
     <div class="card">
         <div class="location">安徽 · 黄山</div>
         <div class="current" id="hs-temp">--</div>
         <div class="info" id="hs-info">正在获取...</div>
+        <div class="forecast" id="hs-forecast"></div>
     </div>
 </div>
 
@@ -39,38 +43,41 @@
 <script>
 particlesJS("particles",{particles:{number:{value:100},color:{value:"#ffffff"},opacity:{value:0.4},size:{value:3},move:{enable:true,speed:1}},interactivity:{events:{onhover:{enable:true,mode:"bubble"}}},retina_detect:true});
 
-const KEY = "Q14EE8E598F";
-
+// Open-Meteo API（无需Key，全球免费）
 function updateWeather(){
-    // 北京香山
-    fetch(`https://devapi.qweather.com/v7/weather/now?location=101010100&key=${KEY}&gzip=true`)
+    // 香山 - 北京 (经纬度 39.99, 116.18)
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=39.99&longitude=116.18&current_weather=true&hourly=temperature_2m&timezone=Asia/Shanghai')
         .then(r => r.json())
         .then(d => {
-            if(d.code === "200"){
-                const w = d.now;
-                document.getElementById("xs-temp").innerHTML = w.temp + "°C";
-                document.getElementById("xs-info").innerHTML = `${w.text} • 湿度 ${w.humidity}% • ${w.windDir} ${w.windScale}级`;
-            } else {
-                document.getElementById("xs-info").innerHTML = "失败：" + d.code;
-            }
-        })
-        .catch(() => document.getElementById("xs-info").innerHTML = "网络错误");
+            const w = d.current_weather;
+            document.getElementById("xs-temp").innerHTML = Math.round(w.temperature) + "°C";
+            document.getElementById("xs-info").innerHTML = "当前天气 • 风速 " + w.windspeed + " km/h";
+            // 3小时预报 (简化版)
+            let html = "";
+            d.hourly.time.slice(0,3).forEach((time, i) => {
+                const temp = Math.round(d.hourly.temperature_2m[i]);
+                html += `<div class="day"><span>${new Date(time).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</span><span>${temp}°C</span></div>`;
+            });
+            document.getElementById("xs-forecast").innerHTML = html;
+        });
 
-    // 黄山
-    fetch(`https://devapi.qweather.com/v7/weather/now?location=101250101&key=${KEY}&gzip=true`)
+    // 黄山 (经纬度 30.13, 118.17)
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=30.13&longitude=118.17&current_weather=true&hourly=temperature_2m&timezone=Asia/Shanghai')
         .then(r => r.json())
         .then(d => {
-            if(d.code === "200"){
-                const w = d.now;
-                document.getElementById("hs-temp").innerHTML = w.temp + "°C";
-                document.getElementById("hs-info").innerHTML = `${w.text} • 湿度 ${w.humidity}% • ${w.windDir} ${w.windScale}级`;
-            } else {
-                document.getElementById("hs-info").innerHTML = "失败：" + d.code;
-            }
-        })
-        .catch(() => document.getElementById("hs-info").innerHTML = "网络错误");
+            const w = d.current_weather;
+            document.getElementById("hs-temp").innerHTML = Math.round(w.temperature) + "°C";
+            document.getElementById("hs-info").innerHTML = "当前天气 • 风速 " + w.windspeed + " km/h";
+            let html = "";
+            d.hourly.time.slice(0,3).forEach((time, i) => {
+                const temp = Math.round(d.hourly.temperature_2m[i]);
+                html += `<div class="day"><span>${new Date(time).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'})}</span><span>${temp}°C</span></div>`;
+            });
+            document.getElementById("hs-forecast").innerHTML = html;
+        });
 }
 
+// 立即加载 + 每30秒刷新
 updateWeather();
 setInterval(updateWeather, 30000);
 </script>
