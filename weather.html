@@ -20,10 +20,8 @@
     </style>
 </head>
 <body>
-
 <canvas id="particles"></canvas>
 <a href="index.html" class="back-btn">返回主页</a>
-
 <h1>香山 & 黄山 实时天气</h1>
 
 <div class="container">
@@ -34,7 +32,6 @@
         <div class="info" id="xs-info">正在获取...</div>
         <div class="forecast" id="xs-forecast"></div>
     </div>
-
     <!-- 黄山天气 -->
     <div class="card">
         <div class="location">安徽 · 黄山</div>
@@ -49,44 +46,61 @@
 // 粒子背景
 particlesJS("particles",{particles:{number:{value:100},color:{value:"#ffffff"},opacity:{value:0.4},size:{value:3},move:{enable:true,speed:1}},interactivity:{events:{onhover:{enable:true,mode:"bubble"}}},retina_detect:true});
 
+// 你的和风天气Key（已正确填写）
 const key = "Q14EE8E598F";
 
+// 实时天气 + 未来3天预报（和风天气API）
 function updateWeather(){
-    // 香山（香山区 adcode）
-    fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=${key}&city=110105&extensions=all`)
+    // 北京香山（location ID: 101010100）
+    fetch(`https://devapi.qweather.com/v7/weather/now?location=101010100&key=${key}`)
         .then(r=>r.json())
         .then(d=>{
-            if(d.status==="1"){
-                const live = d.lives[0];
-                const forecasts = d.forecasts[0].casts;
-                document.getElementById("xs-temp").innerHTML = live.temperature + "°C";
-                document.getElementById("xs-info").innerHTML = 
-                    `${live.weather} · 湿度 ${live.humidity}% · ${live.winddirection}风 ${live.windpower}级`;
-                let html = "";
-                forecasts.slice(0,3).forEach(day=>{
-                    html += `<div class="day"><span>${day.date.slice(5)} ${day.week}</span><span>${day.dayweather} ${day.daytemp}°C</span></div>`;
-                });
-                document.getElementById("xs-forecast").innerHTML = html;
+            if(d.code==="200"){
+                const w = d.now;
+                document.getElementById("xs-temp").innerHTML = w.temp + "°C";
+                document.getElementById("xs-info").innerHTML = `${w.text} · 湿度 ${w.humidity}% · ${w.windDir} ${w.windScale}级`;
+                // 3天预报
+                fetch(`https://devapi.qweather.com/v7/weather/3d?location=101010100&key=${key}`)
+                    .then(r=>r.json())
+                    .then(f=>{
+                        if(f.code==="200"){
+                            let html = "";
+                            f.daily.slice(0,3).forEach(day=>{
+                                html += `<div class="day"><span>${day.fxDate.slice(5)} ${["日","一","二","三","四","五","六"][new Date(day.fxDate).getDay()]}</span><span>${day.textDay} ${day.tempMax}/${day.tempMin}°C</span></div>`;
+                            });
+                            document.getElementById("xs-forecast").innerHTML = html;
+                        }
+                    });
+            } else {
+                document.getElementById("xs-info").innerHTML = "获取失败：" + d.code;
             }
-        });
+        })
+        .catch(()=>document.getElementById("xs-info").innerHTML="网络错误");
 
-    // 黄山（黄山市 adcode）
-    fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=${key}&city=341000&extensions=all`)
+    // 安徽黄山（location ID: 101250101）
+    fetch(`https://devapi.qweather.com/v7/weather/now?location=101250101&key=${key}`)
         .then(r=>r.json())
         .then(d=>{
-            if(d.status==="1"){
-                const live = d.lives[0];
-                const forecasts = d.forecasts[0].casts;
-                document.getElementById("hs-temp").innerHTML = live.temperature + "°C";
-                document.getElementById("hs-info").innerHTML = 
-                    `${live.weather} · 湿度 ${live.humidity}% · ${live.winddirection}风 ${live.windpower}级`;
-                let html = "";
-                forecasts.slice(0,3).forEach(day=>{
-                    html += `<div class="day"><span>${day.date.slice(5)} ${day.week}</span><span>${day.dayweather} ${day.daytemp}°C</span></div>`;
-                });
-                document.getElementById("hs-forecast").innerHTML = html;
+            if(d.code==="200"){
+                const w = d.now;
+                document.getElementById("hs-temp").innerHTML = w.temp + "°C";
+                document.getElementById("hs-info").innerHTML = `${w.text} · 湿度 ${w.humidity}% · ${w.windDir} ${w.windScale}级`;
+                fetch(`https://devapi.qweather.com/v7/weather/3d?location=101250101&key=${key}`)
+                    .then(r=>r.json())
+                    .then(f=>{
+                        if(f.code==="200"){
+                            let html = "";
+                            f.daily.slice(0,3).forEach(day=>{
+                                html += `<div class="day"><span>${day.fxDate.slice(5)} ${["日","一","二","三","四","五","六"][new Date(day.fxDate).getDay()]}</span><span>${day.textDay} ${day.tempMax}/${day.tempMin}°C</span></div>`;
+                            });
+                            document.getElementById("hs-forecast").innerHTML = html;
+                        }
+                    });
+            } else {
+                document.getElementById("hs-info").innerHTML = "获取失败：" + d.code;
             }
-        });
+        })
+        .catch(()=>document.getElementById("hs-info").innerHTML="网络错误");
 }
 
 // 立即加载 + 每30秒刷新一次
